@@ -1,0 +1,19 @@
+{
+    "ATL vs TB": { "spread": -4.5,  "total": 44.5, "favorite": "TB", "underdog": "ATL"},
+    "BUF vs NE":  { "spread": -1.5,  "total": 50.5, "favorite": "BUF" , "underdog": "NE"},
+    "NYJ vs JAX": { "spread": -13.5,  "total": 41.5, "favorite": "JAX", "underdog": "NYJ" },
+    "CLE vs CHI": { "spread": -7.5,  "total": 38.5, "favorite": "CHI", "underdog": "CLE" },
+    "ARI vs HOU": { "spread": -9.5,  "total": 42.5, "favorite": "HOU", "underdog": "ARI"},
+    "BAL vs CIN": { "spread": -2.5,  "total": 52.5, "favorite": "BAL", "underdog": "CIN" },
+    "LV vs PHI": { "spread": -11.5,  "total": 38.5, "favorite": "PHI", "underdog": "LV" },
+    "LAC vs KC": { "spread": -5.5,  "total": 41.5, "favorite": "KC", "underdog": "LAC" },
+    "WAS vs NYG":  { "spread": -2.5,  "total": 47.5, "favorite": "NYG", "underdog": "WAS" },
+    "IND vs SEA": { "spread": -13.5,  "total": 42.5, "favorite": "SEA", "underdog": "IND" },
+    "GB vs DEN": { "spread": -2.5,  "total": 42.5, "favorite": "GB", "underdog": "DEN" },
+    "TEN vs SF":  { "spread": -12.5,  "total": 44.5, "favorite": "SF", "underdog": "TEN"  },
+    "DET vs LAR":  { "spread": -5.5,  "total": 55.5, "favorite": "LAR", "underdog": "DET"  },
+    "CAR vs NO":  { "spread": -2.5,  "total": 40.5, "favorite": "CAR", "underdog": "NO"  },
+    "MIN vs DAL":  { "spread": -5.5,  "total": 47.5, "favorite": "DAL", "underdog": "MIN"  },
+    "MIA vs PIT":  { "spread": -3,  "total": 42.5, "favorite": "PIT", "underdog": "MIA"  }
+  }
+  
