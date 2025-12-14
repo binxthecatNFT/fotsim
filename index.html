@@ -1,0 +1,2084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fantasy Overtime – DFS Sim</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #071a3b 0, #020513 45%, #000000 100%);
+      color: #f8f9ff;
+    }
+    .page {
+      max-width: 1350px;
+      margin: 0 auto;
+      padding: 18px 20px 40px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    header img.logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 999px;
+      box-shadow: 0 0 18px rgba(46, 204, 250, 0.9);
+      object-fit: cover;
+    }
+    header .title-block {
+      display: flex;
+      flex-direction: column;
+    }
+    header .title-block h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      background: linear-gradient(120deg, #74eaff, #00ffb8);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    header .title-block span {
+      font-size: 12px;
+      color: #a8b2ff;
+    }
+
+    h2 { font-size: 16px; margin-top: 0; }
+
+    .card {
+      background: radial-gradient(circle at top left, #12234a 0, #050817 60%);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      box-shadow:
+        0 0 0 1px rgba(116,234,255,0.08),
+        0 16px 30px rgba(0,0,0,0.7);
+    }
+
+    .flex { display: flex; gap: 12px; }
+    .grow { flex: 1 1 auto; }
+
+    label {
+      font-size: 12px;
+      display: block;
+      margin-bottom: 3px;
+    }
+    input[type="number"],
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 7px;
+      border: 1px solid #29345f;
+      background: #050816;
+      color: #f8f9ff;
+      font-size: 12px;
+      box-sizing: border-box;
+    }
+    input[type="file"] { font-size: 12px; }
+    textarea { resize: vertical; min-height: 60px; }
+    input[type="checkbox"] { transform: scale(0.9); }
+
+    .btn {
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00ffe5, #00b0ff);
+      color: #020514;
+      font-weight: 600;
+      box-shadow: 0 0 16px rgba(0,255,229,0.45);
+    }
+    .btn-secondary {
+      background: #10193a;
+      color: #e0e6ff;
+      border: 1px solid #27335a;
+    }
+    .btn-mini {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #27335a;
+      background: #050b22;
+      color: #e0e6ff;
+      cursor: pointer;
+    }
+    .btn-mini.selected {
+      background: #4b5563;
+      color: #9ca3af;
+      border-color: #6b7280;
+    }
+
+    .message {
+      padding: 9px 11px;
+      border-radius: 9px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    .message.ok {
+      background: rgba(46,204,113,0.12);
+      border: 1px solid rgba(46,204,113,0.6);
+    }
+    .message.warn {
+      background: rgba(243,156,18,0.14);
+      border: 1px solid rgba(243,156,18,0.7);
+    }
+
+    details {
+      border-radius: 10px;
+      background: #050816;
+      border: 1px solid #27335a;
+      margin-bottom: 10px;
+    }
+    details summary {
+      cursor: pointer;
+      padding: 8px 12px;
+      list-style: none;
+      font-size: 13px;
+      font-weight: 500;
+      color: #d0ddff;
+    }
+    details[open] {
+      box-shadow: 0 0 18px rgba(116,234,255,0.18);
+    }
+    details summary::-webkit-details-marker { display: none; }
+    details > .inner { padding: 0 12px 10px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11.5px;
+    }
+    th, td {
+      padding: 4px 6px;
+      border-bottom: 1px solid #19244d;
+    }
+    th {
+      text-align: left;
+      color: #a9b6ff;
+      font-weight: 500;
+      user-select: none;
+      cursor: default;
+      white-space: nowrap;
+    }
+    tr:nth-child(even) td {
+      background: #050b22;
+    }
+
+    /* Hover highlight */
+    tr.hoverable { transition: transform 0.08s ease, box-shadow 0.08s ease; }
+    tr.hoverable:hover td {
+      background: rgba(116,234,255,0.10) !important;
+    }
+    tr.hoverable:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.45);
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Sortable indicator */
+    th.sortable { cursor: pointer; }
+    th.sortable:after {
+      content: " ⇅";
+      font-size: 10px;
+      color: #6b7bbd;
+    }
+    th.sortable.sorted-asc:after { content: " ↑"; }
+    th.sortable.sorted-desc:after { content: " ↓"; }
+
+    .scroll-box {
+      max-height: 260px;
+      overflow: auto;
+      border-radius: 8px;
+      border: 1px solid #18214a;
+      background: #020614;
+    }
+
+    .lineup-header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .lineup-title { font-size: 14px; font-weight: 600; }
+    .lineup-meta { font-size: 11px; color: #c6d0ff; }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #0b1534;
+      color: #d5e2ff;
+      margin-right: 3px;
+      margin-top: 2px;
+    }
+    .star-good { color: #ffeaa7; }
+    .star-elite {
+      color: #fdcb6e;
+      text-shadow: 0 0 7px rgba(253,203,110,0.9);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+    }
+
+    .pool-view-table input[type="number"] {
+      width: 70px;
+    }
+
+    /* Vegas table (editable) */
+    .vegas-table input[type="number"]{
+      width: 88px;
+    }
+    .vegas-table input[type="text"]{
+      width: 70px;
+    }
+
+    /* Per-lineup explainer box */
+    .lineup-explainer {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #27335a;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #e5e7eb;
+    }
+
+    /* Running overlay */
+    #runningOverlay{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.72);
+      z-index:9999;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+    #runningOverlay .box{
+      width:min(520px, 94vw);
+      background: radial-gradient(circle at top left, #12234a 0, #050817 60%);
+      border-radius: 14px;
+      padding: 18px 18px 16px;
+      border: 1px solid rgba(116,234,255,0.18);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    #runningOverlay .title{
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    #runningOverlay .sub{
+      font-size: 12px;
+      color:#c6d0ff;
+      margin-bottom: 12px;
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,0.10);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width:30%;
+      background: linear-gradient(90deg, #00ffe5, #00b0ff);
+      border-radius:999px;
+      animation: slide 1.1s infinite ease-in-out;
+    }
+    @keyframes slide{
+      0%{ transform: translateX(-120%); }
+      100%{ transform: translateX(420%); }
+    }
+
+    @media (max-width: 900px) {
+      .flex { flex-direction: column; }
+    }
+  
+
+    /* Small pill used for +/‑ projection adjustments */
+    .adj-pill {
+      display: inline-block;
+      min-width: 44px;
+      text-align: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(15,23,42,0.45);
+      color: #c7d2fe;
+      font-size: 11px;
+      user-select: none;
+    }
+
+    /* Light mode overrides */
+    html[data-theme="light"] body {
+      background: radial-gradient(circle at top, #ffffff 0%, #f3f6ff 45%, #e9ecf6 100%);
+      color: #0b1220;
+    }
+    html[data-theme="light"] .header img {
+      filter: none;
+    }
+    html[data-theme="light"] .card {
+      background: #ffffff;
+      border-color: rgba(30,41,59,0.12);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+    html[data-theme="light"] input,
+    html[data-theme="light"] select,
+    html[data-theme="light"] textarea {
+      background: #f8fafc;
+      border-color: rgba(30,41,59,0.18);
+      color: #0b1220;
+    }
+    html[data-theme="light"] .muted {
+      color: #475569;
+    }
+    html[data-theme="light"] .tag {
+      border-color: rgba(30,41,59,0.18);
+      background: rgba(226,232,240,0.65);
+      color: #0b1220;
+    }
+    html[data-theme="light"] details > summary {
+      background: rgba(226,232,240,0.82);
+      border-color: rgba(30,41,59,0.12);
+      color: #0b1220;
+    }
+    html[data-theme="light"] details > .inner {
+      border-color: rgba(30,41,59,0.12);
+    }
+    html[data-theme="light"] table th,
+    html[data-theme="light"] table td {
+      border-color: rgba(30,41,59,0.12);
+    }
+    html[data-theme="light"] .lineup-explainer {
+      background: #f8fafc;
+      border-color: rgba(30,41,59,0.12);
+      color: #0b1220;
+    }
+    html[data-theme="light"] .adj-pill {
+      background: rgba(226,232,240,0.85);
+      border-color: rgba(30,41,59,0.18);
+      color: #0b1220;
+    }
+</style>
+
+  <script>
+    // --------- Player pool helpers (toggle-style buttons) ---------
+    function rebuildPoolTextareaFromTable() {
+      const table = document.getElementById('pool_view_table');
+      const ta = document.getElementById('pool_raw');
+      if (!table || !ta) return;
+      const rows = table.querySelectorAll('tbody tr');
+      const lines = [];
+      rows.forEach(r => {
+        const name = r.dataset.name;
+        const input = r.querySelector('input[type="number"]');
+        let val = parseFloat(input.value);
+        if (isNaN(val)) val = 100;
+        lines.push(name + '|' + val);
+      });
+      ta.value = lines.join('\n');
+    }
+
+    function buildPoolViewFromTextarea() {
+      const ta = document.getElementById('pool_raw');
+      const container = document.getElementById('pool_view');
+      if (!ta || !container) return;
+      const lines = ta.value.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      let html = '<table id="pool_view_table" class="pool-view-table"><thead><tr><th>Player</th><th>Max %</th></tr></thead><tbody>';
+      const seen = new Set();
+      lines.forEach(line => {
+        const parts = line.split('|');
+        const name = parts[0].trim();
+        if (!name || seen.has(name)) return;
+        seen.add(name);
+        let pct = 100;
+        if (parts.length > 1) {
+          const v = parseFloat(parts[1]);
+          if (!isNaN(v)) pct = v;
+        }
+        html += '<tr class="hoverable" data-name="' + name.replace(/"/g,'&quot;') + '"><td>' +
+          name + '</td><td><input type="number" min="0" max="100" value="' +
+          pct + '" onchange="rebuildPoolTextareaFromTable()"></td></tr>';
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    }
+
+    function getPoolNamesFromTextarea() {
+      const ta = document.getElementById('pool_raw');
+      const names = new Set();
+      if (!ta) return names;
+      ta.value.split(/\r?\n/).forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const parts = trimmed.split('|');
+        const nm = (parts[0] || '').trim();
+        if (nm) names.add(nm);
+      });
+      return names;
+    }
+
+    function getCommaListNames(textareaId) {
+      const ta = document.getElementById(textareaId);
+      const names = new Set();
+      if (!ta) return names;
+      ta.value.split(',').forEach(tok => {
+        const nm = tok.trim();
+        if (nm) names.add(nm);
+      });
+      return names;
+    }
+
+    function setCommaListNames(textareaId, namesSet) {
+      const ta = document.getElementById(textareaId);
+      if (!ta) return;
+      const arr = Array.from(namesSet);
+      ta.value = arr.join(', ');
+    }
+
+    function syncActionButtonStatesFromTextareas() {
+      const poolNames = getPoolNamesFromTextarea();
+      const dnuNames = getCommaListNames('dnu_raw');
+      const comboNames = getCommaListNames('required_combo_raw');
+
+      const rows = document.querySelectorAll('#playersTable tbody tr');
+      rows.forEach(r => {
+        const name = r.dataset.player || (r.cells[0]?.textContent || '').trim();
+        const btnPool = r.querySelector('.btn-mini[data-action="pool"]');
+        const btnDnu = r.querySelector('.btn-mini[data-action="dnu"]');
+        const btnCombo = r.querySelector('.btn-mini[data-action="combo"]');
+
+        if (btnPool) {
+          if (poolNames.has(name)) btnPool.classList.add('selected');
+          else btnPool.classList.remove('selected');
+        }
+        if (btnDnu) {
+          if (dnuNames.has(name)) btnDnu.classList.add('selected');
+          else btnDnu.classList.remove('selected');
+        }
+        if (btnCombo) {
+          if (comboNames.has(name)) btnCombo.classList.add('selected');
+          else btnCombo.classList.remove('selected');
+        }
+      });
+    }
+
+    function togglePlayerInPool(button, name) {
+      const ta = document.getElementById('pool_raw');
+      if (!ta) return;
+      const lines = ta.value.split(/\r?\n/);
+      const newLines = [];
+      let wasIn = false;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+        const parts = trimmed.split('|');
+        const nm = (parts[0] || '').trim();
+        if (nm === name) {
+          wasIn = true;
+          return; // removing
+        }
+        newLines.push(trimmed);
+      });
+
+      if (!wasIn) {
+        newLines.push(name + '|100');
+      }
+
+      ta.value = newLines.join('\n');
+      buildPoolViewFromTextarea();
+      syncActionButtonStatesFromTextareas();
+    }
+
+    function togglePlayerInDNU(button, name) {
+      const names = getCommaListNames('dnu_raw');
+      if (names.has(name)) {
+        names.delete(name);
+      } else {
+        names.add(name);
+      }
+      setCommaListNames('dnu_raw', names);
+      syncActionButtonStatesFromTextareas();
+    }
+
+    function togglePlayerInCombo(button, name) {
+      const names = getCommaListNames('required_combo_raw');
+      if (names.has(name)) {
+        names.delete(name);
+      } else {
+        names.add(name);
+      }
+      setCommaListNames('required_combo_raw', names);
+      syncActionButtonStatesFromTextareas();
+    }
+
+    
+
+    // --------- Player projection adjustments (localStorage -> hidden input) ---------
+    function loadPlayerAdjustments() {
+      try {
+        const raw = localStorage.getItem('player_adjustments') || '';
+        if (!raw) return {};
+        const obj = JSON.parse(raw);
+        if (obj && typeof obj === 'object') return obj;
+      } catch (e) {}
+      return {};
+    }
+
+    function savePlayerAdjustments(obj) {
+      try {
+        localStorage.setItem('player_adjustments', JSON.stringify(obj));
+      } catch (e) {}
+    }
+
+    function syncPlayerAdjustmentsHidden() {
+      const input = document.getElementById('player_adjustments_raw');
+      if (!input) return;
+      const obj = loadPlayerAdjustments();
+      try {
+        input.value = JSON.stringify(obj);
+      } catch (e) {
+        input.value = '{}';
+      }
+    }
+
+    function playerKeyFromRow(tr) {
+      const name = (tr.dataset.player || (tr.cells[0]?.textContent||'')).trim();
+      const team = (tr.dataset.team || (tr.cells[1]?.textContent||'')).trim();
+      const pos = (tr.dataset.pos || (tr.cells[2]?.textContent||'')).trim();
+      const sal = (tr.dataset.salary || (tr.cells[3]?.textContent||'')).trim();
+      return `${name}|${team}|${pos}|${sal}`;
+    }
+
+    function getBaseProjFromRow(tr) {
+      const v = tr.dataset.baseProj;
+      const num = parseFloat(v);
+      return isFinite(num) ? num : (parseFloat((tr.querySelector('.proj-cell')?.textContent||'').trim())||0);
+    }
+
+    function clampPct(p) {
+      if (p > 30) return 30;
+      if (p < -30) return -30;
+      return p;
+    }
+
+    function applyPlayerAdjustmentsToTable() {
+      const obj = loadPlayerAdjustments();
+      document.querySelectorAll('#playersTable tbody tr').forEach(tr => {
+        const key = playerKeyFromRow(tr);
+        const pct = clampPct(parseFloat(obj[key] || 0) || 0);
+        const pill = tr.querySelector('[data-adj-val]');
+        if (pill) pill.textContent = `${pct}%`;
+        const base = getBaseProjFromRow(tr);
+        const newProj = base * (1 + pct / 100.0);
+        const projCell = tr.querySelector('.proj-cell');
+        if (projCell) projCell.textContent = newProj.toFixed(2);
+        if (pct !== 0) {
+          tr.style.outline = '1px solid rgba(0,255,184,0.20)';
+        } else {
+          tr.style.outline = '';
+        }
+      });
+    }
+
+    function bumpPlayerAdj(btn, deltaPct) {
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const key = playerKeyFromRow(tr);
+      const obj = loadPlayerAdjustments();
+      const cur = parseFloat(obj[key] || 0) || 0;
+      const next = clampPct(cur + deltaPct);
+      if (!next) {
+        delete obj[key];
+      } else {
+        obj[key] = next;
+      }
+      savePlayerAdjustments(obj);
+      syncPlayerAdjustmentsHidden();
+      applyPlayerAdjustmentsToTable();
+    }
+
+    function resetPlayerAdj(el) {
+      const tr = el.closest('tr');
+      if (!tr) return;
+      const key = playerKeyFromRow(tr);
+      const obj = loadPlayerAdjustments();
+      delete obj[key];
+      savePlayerAdjustments(obj);
+      syncPlayerAdjustmentsHidden();
+      applyPlayerAdjustmentsToTable();
+    }
+
+    // --------- Theme toggle (dark/light) ---------
+    function applyTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      localStorage.setItem('theme', theme);
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) btn.textContent = (theme === 'dark') ? '☀ Light' : '🌙 Dark';
+    }
+
+    function initThemeToggle() {
+      const saved = localStorage.getItem('theme');
+      const initial = saved || 'dark';
+      applyTheme(initial);
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const cur = document.documentElement.dataset.theme || 'dark';
+          applyTheme(cur === 'dark' ? 'light' : 'dark');
+        });
+      }
+    }
+
+    // --------- Persist <details> collapsed state ---------
+    function initDetailsPersistence() {
+      document.querySelectorAll('details[data-persist-id]').forEach(det => {
+        const id = det.getAttribute('data-persist-id');
+        const key = 'details:' + id;
+        const v = localStorage.getItem(key);
+        if (v === 'open') det.open = true;
+        if (v === 'closed') det.open = false;
+        det.addEventListener('toggle', () => {
+          localStorage.setItem(key, det.open ? 'open' : 'closed');
+        });
+      });
+    }
+
+    // --------- Auto payout UI wiring ---------
+    function syncAutoPayoutUI() {
+      const chk = document.getElementById('auto_payout');
+      if (!chk) return;
+      const on = chk.checked;
+      const ids = ['cash_line','top1_line','win_line'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.disabled = on;
+      });
+    }
+
+// --------- Table sorting (click headers) ---------
+    function makeTableSortable(tableId, numericCols = new Set()) {
+      const table = document.getElementById(tableId);
+      if (!table) return;
+      const thead = table.querySelector('thead');
+      if (!thead) return;
+      const ths = Array.from(thead.querySelectorAll('th'));
+      const tbody = table.querySelector('tbody');
+      if (!tbody) return;
+
+      let sortState = { idx: -1, dir: 'desc' };
+
+      ths.forEach((th, idx) => {
+        if (!th.classList.contains('sortable')) return;
+        th.addEventListener('click', () => {
+          const rows = Array.from(tbody.querySelectorAll('tr'));
+          const isSame = sortState.idx === idx;
+          sortState = { idx, dir: isSame && sortState.dir === 'desc' ? 'asc' : 'desc' };
+
+          ths.forEach(t => t.classList.remove('sorted-asc', 'sorted-desc'));
+          th.classList.add(sortState.dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+          rows.sort((a, b) => {
+            const av = (a.children[idx]?.textContent || '').trim();
+            const bv = (b.children[idx]?.textContent || '').trim();
+            if (numericCols.has(idx)) {
+              const an = parseFloat(av.replace('%','')) || 0;
+              const bn = parseFloat(bv.replace('%','')) || 0;
+              return sortState.dir === 'asc' ? (an - bn) : (bn - an);
+            }
+            return sortState.dir === 'asc'
+              ? av.localeCompare(bv)
+              : bv.localeCompare(av);
+          });
+
+          rows.forEach(r => tbody.appendChild(r));
+        });
+      });
+    }
+
+    // --------- Vegas overrides (editable table -> localStorage -> hidden input) ---------
+    function loadVegasOverrides() {
+      try {
+        const raw = localStorage.getItem('vegas_overrides') || '';
+        if (!raw) return {};
+        const obj = JSON.parse(raw);
+        if (obj && typeof obj === 'object') return obj;
+      } catch (e) {}
+      return {};
+    }
+
+    function saveVegasOverrides(obj) {
+      try {
+        localStorage.setItem('vegas_overrides', JSON.stringify(obj));
+      } catch (e) {}
+    }
+
+    function syncVegasOverridesHidden() {
+      const hidden = document.getElementById('vegas_overrides_raw');
+      if (!hidden) return;
+      const obj = loadVegasOverrides();
+      hidden.value = JSON.stringify(obj);
+    }
+
+    function applyVegasOverridesToTable() {
+      const overrides = loadVegasOverrides();
+      const rows = document.querySelectorAll('#vegasEditableTable tbody tr');
+      rows.forEach(tr => {
+        const gk = tr.dataset.game;
+        const ov = overrides[gk];
+        if (!ov) return;
+        const spread = tr.querySelector('input[name="spread"]');
+        const total = tr.querySelector('input[name="total"]');
+        if (spread && ov.spread != null) spread.value = ov.spread;
+        if (total && ov.total != null) total.value = ov.total;
+
+        ['fav_pct','dog_pct','shootout_pct','slog_pct','weird_pct'].forEach(k => {
+          const inp = tr.querySelector('input[name="'+k+'"]');
+          if (inp && ov[k] != null) inp.value = ov[k];
+        });
+      });
+    }
+
+    function collectVegasOverridesFromTable() {
+      const rows = document.querySelectorAll('#vegasEditableTable tbody tr');
+      const out = {};
+      rows.forEach(tr => {
+        const gk = tr.dataset.game;
+        const getNum = (name) => {
+          const inp = tr.querySelector('input[name="'+name+'"]');
+          if (!inp) return null;
+          const v = parseFloat(inp.value);
+          return isNaN(v) ? null : v;
+        };
+        out[gk] = {
+          spread: getNum('spread'),
+          total: getNum('total'),
+          fav_pct: getNum('fav_pct'),
+          dog_pct: getNum('dog_pct'),
+          shootout_pct: getNum('shootout_pct'),
+          slog_pct: getNum('slog_pct'),
+          weird_pct: getNum('weird_pct'),
+        };
+      });
+      return out;
+    }
+
+    function onVegasSave() {
+      const obj = collectVegasOverridesFromTable();
+      saveVegasOverrides(obj);
+      syncVegasOverridesHidden();
+      alert('Vegas edits saved (in this browser via localStorage). They will be used on the next Run/Preview.');
+    }
+
+    function onVegasReset() {
+      localStorage.removeItem('vegas_overrides');
+      syncVegasOverridesHidden();
+      // reload page values from server
+      location.reload();
+    }
+
+    // --------- Running overlay ---------
+    function showRunningOverlay(text) {
+      const ov = document.getElementById('runningOverlay');
+      if (!ov) return;
+      const sub = ov.querySelector('.sub');
+      if (sub && text) sub.textContent = text;
+      ov.style.display = 'flex';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Theme + collapse state persistence
+      initThemeToggle();
+      initDetailsPersistence();
+
+      // Auto-payout UI (disable manual thresholds when enabled)
+      syncAutoPayoutUI();
+      const autoP = document.getElementById('auto_payout');
+      if (autoP) autoP.addEventListener('change', syncAutoPayoutUI);
+
+      // Build pool view & sync button states
+      buildPoolViewFromTextarea();
+      syncActionButtonStatesFromTextareas();
+
+      // Live search + position filter on player preview
+      const playerSearch = document.getElementById('playerSearch');
+      const posFilter = document.getElementById('posFilter');
+      const applyPlayerFilters = () => {
+        const term = (playerSearch?.value || '').toLowerCase();
+        const pos = (posFilter?.value || '').toUpperCase();
+        const rows = document.querySelectorAll('#playersTable tbody tr');
+        rows.forEach(r => {
+          const name = (r.cells[0]?.textContent || '').toLowerCase();
+          const team = (r.cells[1]?.textContent || '').toLowerCase();
+          const ppos = (r.cells[2]?.textContent || '').toUpperCase();
+          const game = (r.cells[6]?.textContent || '').toLowerCase();
+          const match = (!term || name.includes(term) || team.includes(term) || game.includes(term)) &&
+                        (!pos || ppos === pos);
+          r.style.display = match ? '' : 'none';
+        });
+      };
+      if (playerSearch) playerSearch.addEventListener('input', applyPlayerFilters);
+      if (posFilter) posFilter.addEventListener('change', applyPlayerFilters);
+
+      // Sortable player preview table (Player/Team/Pos/Opp/Spread/Total/Salary/Proj)
+      makeTableSortable('playersTable', new Set([3,4,8,9])); // salary, spread/total/proj numeric columns
+
+      // Player adjustments
+      syncPlayerAdjustmentsHidden();
+      applyPlayerAdjustmentsToTable();
+
+      // Vegas overrides
+      syncVegasOverridesHidden();
+      applyVegasOverridesToTable();
+
+      // Show overlay when running
+      let clickedAction = '';
+      document.querySelectorAll('button[name="action"]').forEach(btn => {
+        btn.addEventListener('click', () => { clickedAction = btn.value; });
+      });
+
+      const form = document.getElementById('mainForm');
+      if (form) {
+        form.addEventListener('submit', () => {
+          // always sync hidden input just before POST
+          syncPlayerAdjustmentsHidden();
+          syncVegasOverridesHidden();
+          if (clickedAction === 'run') showRunningOverlay('Building lineups with the solver and simulating game scripts…');
+          if (clickedAction === 'preview') showRunningOverlay('Loading projections & Vegas data…');
+          if (clickedAction === 'dk_upload') showRunningOverlay('Loading DraftKings salaries…');
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="runningOverlay">
+    <div class="box">
+      <div class="title">Running…</div>
+      <div class="sub">Working…</div>
+      <div class="bar"><div></div></div>
+      <div style="margin-top:10px;font-size:11px;color:#a8b2ff;">
+        This page will refresh automatically when the server finishes.
+      </div>
+    </div>
+  </div>
+
+  <div class="page">
+    <header>
+      <img src="{{ url_for('static', filename='fot_logo.jpg') }}" alt="Fantasy Overtime" class="logo">
+      <div class="title-block">
+        <h1>Fantasy Overtime</h1>
+        <span>Multi-scenario DFS lineup builder &amp; Monte Carlo simulator</span>
+      </div>
+
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn btn-secondary" id="themeToggleBtn" title="Toggle dark / light mode">
+          ☀ Light
+        </button>
+      </div>
+    </header>
+
+    {% if message %}
+      <div class="message ok">{{ message }}</div>
+    {% endif %}
+    {% if warn %}
+      <div class="message warn">{{ warn }}</div>
+    {% endif %}
+    {% if not solver_ready %}
+      <div class="message warn">
+        Solver not available. Install PuLP with: <code>pip install pulp</code> (then restart).
+      </div>
+    {% endif %}
+
+    <form id="mainForm" action="/" method="POST" enctype="multipart/form-data">
+      <input type="hidden" id="vegas_overrides_raw" name="vegas_overrides_raw" value="{}">
+      <input type="hidden" id="player_adjustments_raw" name="player_adjustments_raw" value="{}">
+
+
+      <!-- TOP ACTION BAR -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <button type="submit" name="action" value="preview" class="btn btn-secondary">
+          📥 Upload / refresh player list
+        </button>
+        <button type="submit" name="action" value="run" class="btn btn-primary">
+          🚀 Build &amp; Simulate
+        </button>
+      </div>
+
+      <!-- Upload + rules -->
+      <details open data-persist-id="upload_rules">
+        <summary>📂 Upload projections &amp; build rules</summary>
+        <div class="inner">
+          <div class="flex">
+            <div class="card grow">
+              <h2>1. Projections CSV</h2>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:0;">
+                Columns auto-detected (Player, Team, Pos, Salary, Projection, optional Opp/Game).
+              </p>
+              <input type="file" name="projections_file" accept=".csv">
+              <div style="margin-top:10px;">
+                <label style="font-size:12px;">DraftKings Salaries CSV (for DK upload export)</label>
+                <input type="file" name="dk_salaries_file" accept=".csv">
+                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;">
+                  <button type="submit" name="action" value="dk_upload" class="btn btn-secondary" style="padding:6px 12px;">
+                    📎 Upload DK Salaries
+                  </button>
+                  {% if dk_ready %}<span class="tag">DK salaries loaded</span>{% endif %}
+                </div>
+                <p style="font-size:11px;color:#8f9cff;margin-top:6px;">
+                  Upload the DraftKings <i>DKSalaries</i> CSV to enable exporting lineups with DK Player IDs.<br>
+                  This is a <b>separate upload</b> — it will not clear your cached projections.
+                </p>
+              </div>
+              <p style="font-size:11px;color:#8f9cff;margin-top:6px;">
+                Step 1: choose file &amp; click <b>Upload / refresh player list</b>.<br>
+                Step 2: use the player table buttons to build your pool/DNU/combos, then
+                <b>Build &amp; Simulate</b>.
+              </p>
+            </div>
+
+            <div class="card" style="min-width:260px;">
+              <h2>2. Build settings</h2>
+              <div class="flex">
+                <div class="grow">
+                  <label for="num_lineups"># lineups (max 500)</label>
+                  <input type="number" id="num_lineups" name="num_lineups"
+                         min="1" max="500"
+                         value="{{ ui_state.num_lineups }}">
+                </div>
+                <div class="grow">
+                  <label for="min_salary">Min salary</label>
+                  <input type="number" id="min_salary" name="min_salary"
+                         step="100"
+                         value="{{ ui_state.min_salary }}">
+                </div>
+              </div>
+
+              <div style="margin-top:8px;">
+                <label style="font-size:11px;margin-bottom:3px;">Stack / rules</label>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="require_qb_stack" name="require_qb_stack"
+                         {% if ui_state.require_qb_stack %}checked{% endif %}>
+                  <label for="require_qb_stack">QB + WR/TE from same team</label>
+                </div>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="require_bring_back" name="require_bring_back"
+                         {% if ui_state.require_bring_back %}checked{% endif %}>
+                  <label for="require_bring_back">Require bring-back in X games</label>
+                  <select name="bring_back_games" style="max-width:60px;">
+                    {% for k in [1,2,3,4] %}
+                      <option value="{{k}}"
+                        {% if ui_state.bring_back_games == k %}selected{% endif %}>{{k}}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="no_te_in_flex" name="no_te_in_flex"
+                         {% if ui_state.no_te_in_flex %}checked{% endif %}>
+                  <label for="no_te_in_flex">No TE in FLEX</label>
+                </div>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="avoid_opp_dst" name="avoid_opp_dst"
+                         {% if ui_state.avoid_opp_dst %}checked{% endif %}>
+                  <label for="avoid_opp_dst">Avoid DST vs opponent QB/RB/WR/TE</label>
+                </div>
+                <div class="checkbox-row" style="margin-top:6px;">
+                  <input type="checkbox" id="restrict_to_pool" name="restrict_to_pool"
+                         {% if ui_state.restrict_to_pool %}checked{% endif %}>
+                  <label for="restrict_to_pool"><b>Use only</b> players listed in Pool (restrict)</label>
+                </div>
+                <p style="font-size:11px;color:#a8b2ff;margin-top:6px;">
+                  Tip: if you only add a handful of players to Pool, leave this unchecked so the solver can still use the full slate.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {% if players_preview %}
+            <div class="card" style="margin-top:10px;">
+              <h2 style="margin-bottom:6px;">Live player pool preview</h2>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:0;">
+                Sorted by projection (desc). Use the buttons to push players into
+                <b>Pool</b>, <b>DNU</b>, or <b>Required combo</b>. A greyed-out button
+                means that player is already in that bucket. Clicking it again removes them.
+                Click a column header to sort.
+              </p>
+              <div class="flex" style="margin-bottom:6px; gap:10px;">
+                <div style="max-width:260px;" class="grow">
+                  <label for="playerSearch">Quick search (name / team / game)</label>
+                  <input id="playerSearch" type="text" placeholder="Start typing to filter...">
+                </div>
+                <div style="max-width:180px;">
+                  <label for="posFilter">Position filter</label>
+                  <select id="posFilter">
+                    <option value="">All</option>
+                    <option value="QB">QB</option>
+                    <option value="RB">RB</option>
+                    <option value="WR">WR</option>
+                    <option value="TE">TE</option>
+                    <option value="DST">DST</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="scroll-box">
+                <table id="playersTable">
+                  <thead>
+                    <tr>
+                      <th class="sortable">Player</th>
+                      <th class="sortable">Team</th>
+                      <th class="sortable">Pos</th>
+                      <th class="sortable" style="text-align:right;">Salary</th>
+                      <th class="sortable" style="text-align:right;">Proj</th>
+                      <th style="text-align:center;">Adj</th>
+                      <th class="sortable">Game</th>
+                      <th class="sortable">Opp</th>
+                      <th class="sortable" style="text-align:right;">Spread</th>
+                      <th class="sortable" style="text-align:right;">Total</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for p in players_preview %}
+                      <tr class="hoverable" data-player="{{ p.PlayerName }}" data-team="{{ p.Team }}" data-pos="{{ p.Pos }}" data-salary="{{ "%.0f"|format(p.Salary) }}" data-base-proj="{{ "%.4f"|format(p.Projection) }}">
+                        <td>{{ p.PlayerName }}</td>
+                        <td>{{ p.Team }}</td>
+                        <td>{{ p.Pos }}</td>
+                        <td style="text-align:right;">{{ "%.0f"|format(p.Salary) }}</td>
+                        <td style="text-align:right;" class="proj-cell">{{ "%.2f"|format(p.Projection) }}</td>
+                        <td style="text-align:center;">
+                          <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+                            <button type="button" class="btn-mini" title="Decrease projection 5%" onclick="bumpPlayerAdj(this, -5)">−</button>
+                            <span class="adj-pill" title="Click to reset" onclick="resetPlayerAdj(this)" data-adj-val>0%</span>
+                            <button type="button" class="btn-mini" title="Increase projection 5%" onclick="bumpPlayerAdj(this, 5)">+</button>
+                          </div>
+                        </td>
+                        <td>{{ p.Game }}</td>
+                        <td>{{ p.Opp }}</td>
+                        <td style="text-align:right;">
+                          {% if p.VegasSpread is not none and p.VegasSpread==p.VegasSpread %}
+                            {{ "%.1f"|format(p.VegasSpread) }}
+                          {% endif %}
+                        </td>
+                        <td style="text-align:right;">
+                          {% if p.VegasTotal is not none and p.VegasTotal==p.VegasTotal %}
+                            {{ "%.1f"|format(p.VegasTotal) }}
+                          {% endif %}
+                        </td>
+                        <td>
+                          <button type="button"
+                                  class="btn-mini"
+                                  data-action="pool"
+                                  onclick='togglePlayerInPool(this, {{ p.PlayerName|tojson }});'>+ Pool</button>
+                          <button type="button"
+                                  class="btn-mini"
+                                  data-action="dnu"
+                                  onclick='togglePlayerInDNU(this, {{ p.PlayerName|tojson }});'>+ DNU</button>
+                          <button type="button"
+                                  class="btn-mini"
+                                  data-action="combo"
+                                  onclick='togglePlayerInCombo(this, {{ p.PlayerName|tojson }});'>+ Combo</button>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </details>
+
+      <!-- Player pool / exposures / rules -->
+      <details open data-persist-id="player_pool">
+        <summary>🎯 Player pool, exposure caps &amp; rules</summary>
+        <div class="inner">
+          <div class="flex">
+            <div class="card grow">
+              <h2>3. Player pool (max exposure)</h2>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:0;">
+                One per line in the raw field: <code>Name|max%</code>. The table view below makes it easier
+                to edit exposures; changes sync back to the raw field.
+              </p>
+              <textarea id="pool_raw" name="pool_raw"
+                        style="font-family:monospace;font-size:11px;"
+                        placeholder="Josh Allen|40&#10;Tony Pollard|30">{{ ui_state.pool_raw }}</textarea>
+              <div id="pool_view" style="margin-top:6px;"></div>
+            </div>
+
+            <div class="card grow">
+              <h2>4. Do-Not-Use &amp; required combos</h2>
+              <label for="dnu_raw">Do-Not-Use players (comma separated)</label>
+              <textarea id="dnu_raw" name="dnu_raw"
+                        placeholder="Injured Guy, Dust RB">{{ ui_state.dnu_raw }}</textarea>
+
+              <div style="margin-top:6px;">
+                <label for="required_combo_raw">Required combo players (comma separated)</label>
+                <textarea id="required_combo_raw" name="required_combo_raw"
+                          placeholder="Michael Wilson, Puka Nacua, Josh Allen">{{ ui_state.required_combo_raw }}</textarea>
+              </div>
+              <div style="margin-top:6px;max-width:120px;">
+                <label for="required_combo_min">Require at least this many per lineup</label>
+                <input type="number" id="required_combo_min" name="required_combo_min"
+                       min="1" max="9"
+                       value="{{ ui_state.required_combo_min }}">
+              </div>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:5px;">
+                Example: Wilson, Puka, Allen with min=2 → every lineup must use at least two of them.
+              </p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- Vegas editable table -->
+      <details open data-persist-id="vegas">
+        <summary>📈 Vegas &amp; game scripts (editable)</summary>
+        <div class="inner">
+          {% if games_summary %}
+            <div class="card">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+                <h2 style="margin:0;">Vegas lines + script weights</h2>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  <button type="button" class="btn btn-secondary" onclick="onVegasSave()">💾 Save Vegas edits</button>
+                  <button type="button" class="btn btn-secondary" onclick="onVegasReset()">↩ Reset (discard local edits)</button>
+                </div>
+              </div>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:6px;">
+                Edit these values to match your view of the slate. Saved in your browser (localStorage) and applied on the next Preview/Run.
+              </p>
+
+              <div class="scroll-box" style="max-height:240px;">
+                <table id="vegasEditableTable" class="vegas-table">
+                  <thead>
+                    <tr>
+                      <th>Game</th>
+                      <th>Fav</th>
+                      <th>Dog</th>
+                      <th style="text-align:right;">Spread</th>
+                      <th style="text-align:right;">Total</th>
+                      <th style="text-align:right;">Fav leads%</th>
+                      <th style="text-align:right;">Dog leads%</th>
+                      <th style="text-align:right;">Shootout%</th>
+                      <th style="text-align:right;">Low &amp; slow%</th>
+                      <th style="text-align:right;">Weird%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for g in games_summary %}
+                      <tr class="hoverable" data-game="{{ g.Game }}">
+                        <td>{{ g.Game }}</td>
+                        <td>{{ g.fav_team }}</td>
+                        <td>{{ g.dog_team }}</td>
+                        <td style="text-align:right;"><input name="spread" type="number" step="0.5" value="{{ '%.1f'|format(g.spread) }}"></td>
+                        <td style="text-align:right;"><input name="total" type="number" step="0.5" value="{{ '%.1f'|format(g.total) }}"></td>
+                        <td style="text-align:right;"><input name="fav_pct" type="number" step="0.1" value="{{ '%.1f'|format(g.fav_pct) }}"></td>
+                        <td style="text-align:right;"><input name="dog_pct" type="number" step="0.1" value="{{ '%.1f'|format(g.dog_pct) }}"></td>
+                        <td style="text-align:right;"><input name="shootout_pct" type="number" step="0.1" value="{{ '%.1f'|format(g.shootout_pct) }}"></td>
+                        <td style="text-align:right;"><input name="slog_pct" type="number" step="0.1" value="{{ '%.1f'|format(g.slog_pct) }}"></td>
+                        <td style="text-align:right;"><input name="weird_pct" type="number" step="0.1" value="{{ '%.1f'|format(g.weird_pct) }}"></td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              <div style="font-size:11px;color:#a8b2ff;margin-top:6px;">
+                These weights drive how often each game goes into favorite-leads / underdog-leads / shootout / slog / weird during the Monte Carlo.
+              </div>
+            </div>
+          {% else %}
+            <p style="font-size:11px;color:#a8b2ff;">
+              Upload a projections file and add <code>vegas_odds.json</code> next to <code>app.py</code> to see Vegas lines here.
+            </p>
+          {% endif %}
+        </div>
+      </details>
+
+      <!-- Simulation settings -->
+      <details open data-persist-id="sim_payout">
+        <summary>🎲 Simulation / payout settings</summary>
+        <div class="inner">
+          <div class="flex">
+            <div class="card grow">
+              <h2>5. Payout / thresholds</h2>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:0;">
+                These drive EV, ROI &amp; ⭐ scores. Tune to match DK payout curves.
+              </p>
+              <div class="flex">
+                <div class="grow">
+                  <label for="cash_line">Cash threshold (FP)</label>
+                  <input type="number" step="0.5" id="cash_line" name="cash_line"
+                         value="{{ ui_state.cash_line }}">
+                </div>
+                <div class="grow">
+                  <label for="top1_line">Top 1% threshold (FP)</label>
+                  <input type="number" step="0.5" id="top1_line" name="top1_line"
+                         value="{{ ui_state.top1_line }}">
+                </div>
+                <div class="grow">
+                  <label for="win_line">Win / ship threshold (FP)</label>
+                  <input type="number" step="0.5" id="win_line" name="win_line"
+                         value="{{ ui_state.win_line }}">
+                </div>
+              </div>
+            </div>
+
+            <div class="card grow" style="margin-top:12px;">
+              <h2>5b. Auto thresholds &amp; simulation depth</h2>
+              <div class="checkbox-row">
+                <input type="checkbox" id="auto_payout" name="auto_payout" {% if ui_state.auto_payout %}checked{% endif %}>
+                <label for="auto_payout"><b>Auto-generate payout thresholds</b> from the simulated score distribution</label>
+              </div>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:6px;">
+                When enabled, Cash / Top 1% / Win are estimated from Monte Carlo. Higher quantiles = harder.
+              </p>
+              <div class="flex">
+                <div class="grow">
+                  <label for="cash_quantile">Cash quantile (e.g., 0.60)</label>
+                  <input type="number" step="0.001" min="0.30" max="0.90" id="cash_quantile" name="cash_quantile" value="{{ ui_state.cash_quantile }}">
+                </div>
+                <div class="grow">
+                  <label for="top1_quantile">Top 1% quantile (e.g., 0.990)</label>
+                  <input type="number" step="0.001" min="0.80" max="0.999" id="top1_quantile" name="top1_quantile" value="{{ ui_state.top1_quantile }}">
+                </div>
+                <div class="grow">
+                  <label for="win_quantile">Win quantile (e.g., 0.999)</label>
+                  <input type="number" step="0.0001" min="0.90" max="0.9999" id="win_quantile" name="win_quantile" value="{{ ui_state.win_quantile }}">
+                </div>
+              </div>
+              <div class="flex" style="margin-top:8px;">
+                <div class="grow" style="max-width:220px;">
+                  <label for="sim_trials">Monte Carlo trials</label>
+                  <input type="number" id="sim_trials" name="sim_trials" min="500" max="20000" step="500" value="{{ ui_state.sim_trials }}">
+                </div>
+              </div>
+
+              <details style="margin-top:10px;">
+                <summary style="font-size:12px;">Advanced EV payout curve</summary>
+                <div class="inner">
+                  <p style="font-size:11px;color:#a8b2ff;margin-top:0;">
+                    EV/ROI uses a simple stepwise payout curve to avoid double-counting (cash, then top1%, then win).
+                  </p>
+                  <div class="flex">
+                    <div class="grow">
+                      <label for="entry_fee">Entry fee</label>
+                      <input type="number" step="0.5" id="entry_fee" name="entry_fee" value="{{ ui_state.entry_fee }}">
+                    </div>
+                    <div class="grow">
+                      <label for="prize_cash">Min cash payout</label>
+                      <input type="number" step="0.5" id="prize_cash" name="prize_cash" value="{{ ui_state.prize_cash }}">
+                    </div>
+                    <div class="grow">
+                      <label for="prize_top1">Top 1% payout</label>
+                      <input type="number" step="1" id="prize_top1" name="prize_top1" value="{{ ui_state.prize_top1 }}">
+                    </div>
+                    <div class="grow">
+                      <label for="prize_win">Win / ship payout</label>
+                      <input type="number" step="10" id="prize_win" name="prize_win" value="{{ ui_state.prize_win }}">
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </div>
+
+
+            <div class="card" style="min-width:260px;">
+              <h2>6. Sort &amp; filter lineups (initial)</h2>
+              <label for="sort_by">Initial order (server-side)</label>
+              <select id="sort_by" name="sort_by">
+                <option value="ev" {% if ui_state.sort_by == "ev" %}selected{% endif %}>Highest EV</option>
+                <option value="roi" {% if ui_state.sort_by == "roi" %}selected{% endif %}>Highest ROI</option>
+                <option value="p50" {% if ui_state.sort_by == "p50" %}selected{% endif %}>Highest p50</option>
+                <option value="p95" {% if ui_state.sort_by == "p95" %}selected{% endif %}>Highest p95</option>
+                <option value="proj" {% if ui_state.sort_by == "proj" %}selected{% endif %}>Highest projection</option>
+                <option value="stars" {% if ui_state.sort_by == "stars" %}selected{% endif %}>Highest ⭐ score</option>
+              </select>
+              <p style="font-size:11px;color:#a8b2ff;margin-top:6px;">
+                After lineups are built, you’ll get extra client-side filters + sort + CSV export below.
+              </p>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <!-- bottom buttons -->
+      <div style="margin:10px 0 16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button type="submit" name="action" value="preview" class="btn btn-secondary">
+          📥 Upload / refresh player list
+        </button>
+        <button type="submit" name="action" value="run" class="btn btn-primary">
+          🚀 Build &amp; Simulate
+        </button>
+      </div>
+    </form>
+
+    {% if exposures %}
+      <details open data-persist-id="exposures_dashboard">
+        <summary>📊 Player exposure dashboard</summary>
+        <div class="inner">
+          <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+          <h2 style="margin:0;">Player exposure dashboard</h2>
+          <span style="font-size:11px;color:#a8b2ff;">
+            Across {{ results|length }} simulated lineups
+          </span>
+        </div>
+        <div class="scroll-box" style="max-height:230px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Pos</th>
+                <th>Player</th>
+                <th>Team</th>
+                <th>Exposure</th>
+                <th># lineups</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in exposures %}
+                <tr class="hoverable">
+                  <td>{{ row.Pos }}</td>
+                  <td>{{ row.PlayerName }}</td>
+                  <td>{{ row.Team }}</td>
+                  <td>{{ "%.1f"|format(row.Exposure) }}%</td>
+                  <td>{{ row.LineupCount }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+          </div>
+        </div>
+      </details>
+    {% endif %}
+
+    {% if results %}
+      <!-- Client-side filters + sort + export -->
+      <div class="card">
+        <h2 style="margin-top:0;">Sort &amp; filter built lineups</h2>
+
+        <div class="flex" style="align-items:flex-end;gap:12px;flex-wrap:wrap;">
+          <div class="grow">
+            <label for="lineupFilterName">Filter by player name</label>
+            <input id="lineupFilterName" type="text"
+                   placeholder="e.g. type 'Allen' to isolate Josh Allen lineups">
+            <div style="font-size:11px;color:#a8b2ff;margin-top:4px;">
+              This is purely visual — it filters and reorders the lineups that were already generated.
+            </div>
+          </div>
+          <div>
+            <label for="lineupSortSelect">Sort visible lineups by</label>
+            <select id="lineupSortSelect">
+              <option value="ev">Highest EV</option>
+              <option value="roi">Highest ROI</option>
+              <option value="proj">Highest projection</option>
+              <option value="p50">Highest p50</option>
+              <option value="p95">Highest p95</option>
+              <option value="stars">Highest ⭐ score</option>
+            </select>
+          </div>
+          <div>
+            <button type="button" id="exportLineupsBtn" class="btn btn-secondary" style="margin-top:4px;">
+              ⬇ Export visible lineups (CSV)
+            </button>
+          </div>
+          <div>
+            {% if dk_ready %}
+              <button type="button" id="exportDKIdsBtn" class="btn btn-secondary" style="margin-top:4px;">
+                ⬇ DK upload (IDs)
+              </button>
+              <button type="button" id="exportDKNameIdBtn" class="btn btn-secondary" style="margin-top:4px;">
+                ⬇ DK upload (Name + ID)
+              </button>
+            {% else %}
+              <button type="button" class="btn btn-secondary" disabled style="margin-top:4px;opacity:.55;" title="Upload DraftKings Salaries CSV above to enable DK export.">
+                ⬇ DK upload (IDs)
+              </button>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="flex" style="margin-top:10px;gap:8px;flex-wrap:wrap;">
+          <div class="grow">
+            <label for="filterQB_sel">QB filter</label>
+            <select id="filterQB_sel" data-any-label="Any QB">
+              <option value="">Any QB</option>
+            </select>
+          </div>
+          <div class="grow">
+            <label for="filterRB_sel">RB filter</label>
+            <select id="filterRB_sel" data-any-label="Any RB">
+              <option value="">Any RB</option>
+            </select>
+          </div>
+          <div class="grow">
+            <label for="filterWR_sel">WR filter</label>
+            <select id="filterWR_sel" data-any-label="Any WR">
+              <option value="">Any WR</option>
+            </select>
+          </div>
+          <div class="grow">
+            <label for="filterTE_sel">TE filter</label>
+            <select id="filterTE_sel" data-any-label="Any TE">
+              <option value="">Any TE</option>
+            </select>
+          </div>
+          <div class="grow">
+            <label for="filterDST_sel">DST filter</label>
+            <select id="filterDST_sel" data-any-label="Any DST">
+              <option value="">Any DST</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lineup results -->
+      <div class="card">
+        <h2 style="margin-top:0;">Lineup results</h2>
+        <div id="lineupResultsContainer">
+          {% for ln in results %}
+            {% set sim = ln.sim %}
+            <div class="card lineup-card"
+                 data-lineup-idx="{{ ln.idx }}"
+                 data-salary="{{ '%.0f'|format(ln.total_salary) }}"
+                 data-proj="{{ '%.4f'|format(ln.total_proj) }}"
+                 data-ev="{{ '%.6f'|format(sim.ev) }}"
+                 data-roi="{{ '%.6f'|format(sim.roi) }}"
+                 data-stars="{{ '%.3f'|format(sim.star_rating) }}"
+                 data-p50="{{ '%.4f'|format(sim.p50) }}"
+                 data-p80="{{ '%.4f'|format(sim.p80) }}"
+                 data-p95="{{ '%.4f'|format(sim.p95) }}"
+                 data-winRate="{{ '%.6f'|format(sim.win_rate) }}"
+                 data-top1Rate="{{ '%.6f'|format(sim.top1_rate) }}"
+                 data-cashRate="{{ '%.6f'|format(sim.cash_rate) }}"
+                 data-archetype="{{ sim.archetype }}"
+                 data-tail-scripts='{{ sim.tail_scripts|tojson|safe }}'
+                 data-stack='{{ sim.stack|tojson|safe }}'
+                 data-players='{{ ln.players|tojson|safe }}'>
+              <div class="lineup-header">
+                <div>
+                  <div class="lineup-title">Lineup #{{ ln.idx }}</div>
+                  <div class="lineup-meta">
+                    Salary {{ "%.0f"|format(ln.total_salary) }}/50000 •
+                    Proj {{ "%.2f"|format(ln.total_proj) }} FP •
+                    Ceil p95 {{ "%.1f"|format(sim.p95) }} FP
+                  </div>
+                </div>
+                <div>
+                  <span class="tag">{{ sim.archetype }}</span>
+                  <span class="tag">EV {{ "%.1f"|format(sim.ev) }}</span>
+                  <span class="tag">ROI {{ "%.1f"|format(sim.roi*100) }}%</span>
+                  {% if sim.star_rating >= 4.5 %}
+                    <span class="tag star-elite">⭐ {{ "%.1f"|format(sim.star_rating) }}/5</span>
+                  {% elif sim.star_rating >= 3.5 %}
+                    <span class="tag star-good">⭐ {{ "%.1f"|format(sim.star_rating) }}/5</span>
+                  {% else %}
+                    <span class="tag">⭐ {{ "%.1f"|format(sim.star_rating) }}/5</span>
+                  {% endif %}
+                  <button type="button" class="btn-mini explain-all-btn" style="margin-left:8px;">
+                    🧠 Explain All
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex">
+                <div class="grow">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Slot</th>
+                        <th>Pos</th>
+                        <th>Player</th>
+                        <th>Team</th>
+                        <th>Opp</th>
+                        <th style="text-align:right;">Spread</th>
+                        <th style="text-align:right;">Total</th>
+                        <th style="text-align:right;">Salary</th>
+                        <th style="text-align:right;">Proj</th>
+                        <th style="text-align:right;">Ceil avg (p95+)</th>
+                        <th style="text-align:right;">Ceil Δ vs Proj</th>
+                        <th>Explain</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for p in ln.players %}
+                        {% set key = (p.PlayerName ~ '|' ~ (p.Team or '') ~ '|' ~ (p.Pos or '')) %}
+                        {% set cp = ln.ceil_map.get(key) if p.PlayerName is defined else None %}
+                        {% set ceil_val = (cp.avg_hi if cp is defined and cp else (p.P95 if p.P95 is defined else (p.Projection * 1.5 if p.Projection is defined else 0))) %}
+                        <tr class="hoverable"
+                          {% if p.PlayerName is defined %}
+                            data-player-name="{{ p.PlayerName }}"
+                            data-player-team="{{ p.Team or '' }}"
+                            data-player-pos="{{ p.Pos or '' }}"
+                            data-player-proj="{% if p.Projection is defined %}{{ '%.2f'|format(p.Projection) }}{% else %}0{% endif %}"
+                            data-player-ceil="{{ '%.2f'|format(ceil_val) }}"
+                            data-player-game="{{ p.GameKey or '' }}"
+                            data-player-salary="{{ "%.0f"|format(p.Salary) }}"
+                            data-player-opp="{{ p.Opp or '' }}"
+                            data-player-slot="{{ p.Slot }}"
+                          {% endif %}
+                        >
+                          <td>{{ p.Slot }}</td>
+                          <td>
+                            {% if p.Slot == "FLEX" %}
+                              FLEX
+                            {% else %}
+                              {{ p.Pos or "" }}
+                            {% endif %}
+                          </td>
+                          <td>{{ p.PlayerName or "" }}</td>
+                          <td>{{ p.Team or "" }}</td>
+                          <td>{{ p.Opp or "" }}</td>
+                          <td style="text-align:right;">
+                            {% if p.VegasSpread is defined and p.VegasSpread==p.VegasSpread %}
+                              {{ "%.1f"|format(p.VegasSpread) }}
+                            {% endif %}
+                          </td>
+                          <td style="text-align:right;">
+                            {% if p.VegasTotal is defined and p.VegasTotal==p.VegasTotal %}
+                              {{ "%.1f"|format(p.VegasTotal) }}
+                            {% endif %}
+                          </td>
+                          <td style="text-align:right;">
+                            {% if p.Salary is defined %}{{ "%.0f"|format(p.Salary) }}{% endif %}
+                          </td>
+                          <td style="text-align:right;">
+                            {% if p.Projection is defined %}{{ "%.2f"|format(p.Projection) }}{% endif %}
+                          </td>
+                          <td style="text-align:right;"
+                              title="{{ sim.script_summary }}&#10;&#10;{{ sim.ceiling_script_summary }}">
+                            {{ "%.1f"|format(ceil_val) }}
+                          </td>
+                          <td style="text-align:right;"
+                              title="{{ sim.script_summary }}&#10;&#10;{{ sim.ceiling_script_summary }}">
+                            {% if cp and cp.diff_pct is not none %}
+                              {{ "%.0f"|format(cp.diff_pct) }}%
+                            {% endif %}
+                          </td>
+                          <td>
+                            {% if p.PlayerName is defined %}
+                              <button type="button"
+                                      class="btn-mini explain-player-btn">
+                                🧠 Explain
+                              </button>
+                            {% endif %}
+                          </td>
+                        </tr>
+                      {% endfor %}
+
+                      <!-- Totals row (aligned to Salary/Proj/Ceil columns) -->
+                      <tr class="hoverable">
+                        <td></td>
+                        <td></td>
+                        <td colspan="5" style="text-align:right;color:#a8b2ff;font-weight:600;">Totals</td>
+                        <td style="text-align:right;font-weight:700;">{{ "%.0f"|format(ln.total_salary) }}</td>
+                        <td style="text-align:right;font-weight:700;">{{ "%.2f"|format(ln.total_proj) }}</td>
+                        <td style="text-align:right;font-weight:700;">{{ "%.1f"|format(ln.total_ceil) }}</td>
+                        <td></td>
+                        <td></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style="min-width:250px;">
+                  <table>
+                    <tbody>
+                      <tr><th>p50</th><td style="text-align:right;">{{ "%.1f"|format(sim.p50) }}</td></tr>
+                      <tr><th>p80</th><td style="text-align:right;">{{ "%.1f"|format(sim.p80) }}</td></tr>
+                      <tr><th>p95</th><td style="text-align:right;">{{ "%.1f"|format(sim.p95) }}</td></tr>
+                      <tr><th>Cash rate</th><td style="text-align:right;">{{ "%.1f"|format(sim.cash_rate*100) }}%</td></tr>
+                      <tr><th>Top 1% rate</th><td style="text-align:right;">{{ "%.2f"|format(sim.top1_rate*100) }}%</td></tr>
+                      <tr><th>Win rate</th><td style="text-align:right;">{{ "%.3f"|format(sim.win_rate*100) }}%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Per-lineup explainer output -->
+              <div class="lineup-explainer" style="display:none;"></div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const nameInput = document.getElementById('lineupFilterName');
+          const sortSelect = document.getElementById('lineupSortSelect');
+          const qbSel = document.getElementById('filterQB_sel');
+          const rbSel = document.getElementById('filterRB_sel');
+          const wrSel = document.getElementById('filterWR_sel');
+          const teSel = document.getElementById('filterTE_sel');
+          const dstSel = document.getElementById('filterDST_sel');
+          const exportBtn = document.getElementById('exportLineupsBtn');
+          const exportDKIdsBtn = document.getElementById('exportDKIdsBtn');
+          const exportDKNameIdBtn = document.getElementById('exportDKNameIdBtn');
+          const DK_EXPORT_MAP = {{ dk_export_map|tojson|safe }};
+
+          const container = document.getElementById('lineupResultsContainer');
+          if (!container) return;
+
+          function getCards() {
+            return Array.from(container.querySelectorAll('.lineup-card'));
+          }
+
+          // Build dropdown options
+          function buildPositionOptions() {
+            const cards = getCards();
+            const posMap = { QB: new Set(), RB: new Set(), WR: new Set(), TE: new Set(), DST: new Set() };
+
+            cards.forEach(card => {
+              let players = [];
+              try { players = JSON.parse(card.dataset.players || '[]'); } catch (e) { players = []; }
+              players.forEach(p => {
+                const pos = String(p.Pos || '').toUpperCase();
+                const name = String(p.PlayerName || '').trim();
+                if (posMap[pos] && name) posMap[pos].add(name);
+              });
+            });
+
+            function fillSelect(select, posKey) {
+              if (!select) return;
+              const anyLabel = select.getAttribute('data-any-label') || 'Any';
+              select.innerHTML = '';
+              const anyOpt = document.createElement('option');
+              anyOpt.value = '';
+              anyOpt.textContent = anyLabel;
+              select.appendChild(anyOpt);
+              Array.from(posMap[posKey]).sort().forEach(nm => {
+                const opt = document.createElement('option');
+                opt.value = nm;
+                opt.textContent = nm;
+                select.appendChild(opt);
+              });
+            }
+
+            fillSelect(qbSel, 'QB');
+            fillSelect(rbSel, 'RB');
+            fillSelect(wrSel, 'WR');
+            fillSelect(teSel, 'TE');
+            fillSelect(dstSel, 'DST');
+          }
+
+          function applyFiltersAndSort() {
+            const search = (nameInput.value || '').trim().toLowerCase();
+            const qbName = qbSel.value || '';
+            const rbName = rbSel.value || '';
+            const wrName = wrSel.value || '';
+            const teName = teSel.value || '';
+            const dstName = dstSel.value || '';
+            const sortBy = sortSelect.value || 'ev';
+
+            const cards = getCards();
+
+            cards.forEach(card => {
+              let players = [];
+              try { players = JSON.parse(card.dataset.players || '[]'); } catch (e) { players = []; }
+              let visible = true;
+
+              if (search) {
+                const hasMatch = players.some(p =>
+                  String(p.PlayerName || '').toLowerCase().includes(search)
+                );
+                if (!hasMatch) visible = false;
+              }
+
+              function matchesPos(pos, wantedName) {
+                if (!wantedName) return true;
+                return players.some(p => String(p.Pos) === pos && String(p.PlayerName) === wantedName);
+              }
+
+              if (visible && !matchesPos('QB', qbName)) visible = false;
+              if (visible && !matchesPos('RB', rbName)) visible = false;
+              if (visible && !matchesPos('WR', wrName)) visible = false;
+              if (visible && !matchesPos('TE', teName)) visible = false;
+              if (visible && !matchesPos('DST', dstName)) visible = false;
+
+              card.style.display = visible ? '' : 'none';
+            });
+
+            const fieldMap = {
+              ev: 'ev',
+              roi: 'roi',
+              proj: 'proj',
+              p50: 'p50',
+              p95: 'p95',
+              stars: 'stars'
+            };
+            const field = fieldMap[sortBy] || 'ev';
+
+            const sorted = cards.slice().sort((a, b) => {
+              const av = parseFloat(a.dataset[field] || '0');
+              const bv = parseFloat(b.dataset[field] || '0');
+              return bv - av;
+            });
+
+            sorted.forEach(card => container.appendChild(card));
+          }
+
+          function exportVisibleToCSV() {
+            const cards = getCards().filter(c => c.style.display !== 'none');
+            if (!cards.length) {
+              alert('No visible lineups to export.');
+              return;
+            }
+
+            const header = [
+              'LineupIndex','TotalSalary','TotalProj','TotalCeilP95plus','EV','ROI','Stars','Archetype',
+              'p50','p80','p95','WinRate','Top1Rate','CashRate',
+              'QB','RB1','RB2','WR1','WR2','WR3','TE','FLEX','DST'
+            ];
+            const rows = [header];
+
+            cards.forEach(card => {
+              const idx = card.dataset.lineupIdx || '';
+              const salary = card.dataset.salary || '';
+              const proj = card.dataset.proj || '';
+              const ev = card.dataset.ev || '';
+              const roi = card.dataset.roi || '';
+              const stars = card.dataset.stars || '';
+              const arche = card.dataset.archetype || '';
+              const p50 = card.dataset.p50 || '';
+              const p80 = card.dataset.p80 || '';
+              const p95 = card.dataset.p95 || '';
+              const winRate = card.dataset.winRate || '';
+              const top1Rate = card.dataset.top1Rate || '';
+              const cashRate = card.dataset.cashRate || '';
+
+              let players = [];
+              try { players = JSON.parse(card.dataset.players || '[]'); } catch (e) { players = []; }
+              const slotMap = {};
+              players.forEach(p => {
+                if (p.Slot) slotMap[p.Slot] = p.PlayerName || '';
+              });
+
+              rows.push([
+                idx,salary,proj,'',ev,roi,stars,arche,
+                p50,p80,p95,winRate,top1Rate,cashRate,
+                slotMap.QB || '', slotMap.RB1 || '', slotMap.RB2 || '',
+                slotMap.WR1 || '', slotMap.WR2 || '', slotMap.WR3 || '',
+                slotMap.TE || '', slotMap.FLEX || '', slotMap.DST || ''
+              ]);
+            });
+
+            const csv = rows.map(row =>
+              row.map(val => {
+                const s = String(val ?? '');
+                if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+                  return '"' + s.replace(/"/g, '""') + '"';
+                }
+                return s;
+              }).join(',')
+            ).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dfs_lineups.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+
+          // DraftKings upload export (requires DK Salaries mapping)
+          function dkKeyForPlayer(p) {
+            const name = String(p.PlayerName || '').trim();
+            const team = String(p.Team || '').trim();
+            const pos = String(p.Pos || '').trim();
+            const salary = Math.round(Number(p.Salary || 0));
+            return `${name}|${team}|${pos}|${salary}`;
+          }
+
+          function dkValueForPlayer(p, mode) {
+            const key = dkKeyForPlayer(p);
+            const hit = DK_EXPORT_MAP[key];
+            if (!hit) return '';
+            if (mode === 'name_id') return hit.name_id || '';
+            return hit.id || '';
+          }
+
+          function exportVisibleToDKCSV(mode) {
+            const cards = getCards().filter(c => c.style.display !== 'none');
+            if (!cards.length) {
+              alert('No visible lineups to export.');
+              return;
+            }
+
+            const header = ['QB','RB','RB','WR','WR','WR','TE','FLEX','DST'];
+            const rows = [header];
+
+            const missing = new Set();
+
+            cards.forEach(card => {
+              let players = [];
+              try { players = JSON.parse(card.dataset.players || '[]'); } catch (e) { players = []; }
+              const slotMap = {};
+              players.forEach(p => {
+                if (p.Slot) slotMap[p.Slot] = p;
+              });
+
+              const qb = slotMap.QB;
+              const rb1 = slotMap.RB1;
+              const rb2 = slotMap.RB2;
+              const wr1 = slotMap.WR1;
+              const wr2 = slotMap.WR2;
+              const wr3 = slotMap.WR3;
+              const te = slotMap.TE;
+              const flex = slotMap.FLEX;
+              const dst = slotMap.DST;
+
+              const vals = [qb, rb1, rb2, wr1, wr2, wr3, te, flex, dst].map(p => {
+                if (!p) return '';
+                const v = dkValueForPlayer(p, mode);
+                if (!v) missing.add(`${p.PlayerName} (${p.Team}, ${p.Pos})`);
+                return v;
+              });
+
+              rows.push(vals);
+            });
+
+            const csv = rows.map(row => row.map(val => {
+              const s = String(val ?? '');
+              if (s.includes('"') || s.includes(',') || s.includes('\n')) {
+                return '"' + s.replace(/"/g, '""') + '"';
+              }
+              return s;
+            }).join(',')).join('\n');
+
+            if (missing.size) {
+              const sample = Array.from(missing).slice(0, 10).join('\n');
+              alert(`DK export warning: missing DK IDs for ${missing.size} players.
+
+First few:
+${sample}
+
+Upload DKSalaries.csv and rerun, or adjust name/team matching.`);
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = mode === 'name_id' ? 'dk_upload_name_id.csv' : 'dk_upload_ids.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }
+
+          nameInput.addEventListener('input', applyFiltersAndSort);
+          sortSelect.addEventListener('change', applyFiltersAndSort);
+          qbSel.addEventListener('change', applyFiltersAndSort);
+          rbSel.addEventListener('change', applyFiltersAndSort);
+          wrSel.addEventListener('change', applyFiltersAndSort);
+          teSel.addEventListener('change', applyFiltersAndSort);
+          dstSel.addEventListener('change', applyFiltersAndSort);
+          exportBtn.addEventListener('click', exportVisibleToCSV);
+          if (exportDKIdsBtn) exportDKIdsBtn.addEventListener('click', () => exportVisibleToDKCSV('id'));
+          if (exportDKNameIdBtn) exportDKNameIdBtn.addEventListener('click', () => exportVisibleToDKCSV('name_id'));
+
+          buildPositionOptions();
+          applyFiltersAndSort();
+
+          // -------- Explain panel (Vegas-aware, script-aware) --------
+          function esc(s){
+            return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+          }
+          function num(x){
+            const v=parseFloat(x);
+            return Number.isFinite(v)?v:0;
+          }
+          function getVegasForGame(gameKey){
+            const t=document.getElementById('vegasEditableTable');
+            if(!t) return null;
+            const safe=String(gameKey||'').replace(/"/g,'\"');
+            const row=t.querySelector(`tr[data-game="${safe}"]`);
+            if(!row) return null;
+            const fav=(row.cells[1]?.textContent||'').trim();
+            const dog=(row.cells[2]?.textContent||'').trim();
+            const spread=num(row.querySelector('input[name="spread"]')?.value);
+            const total=num(row.querySelector('input[name="total"]')?.value);
+            return {gameKey:gameKey,fav:fav,dog:dog,spread:spread,total:total};
+          }
+          function impliedTeamPoints(team,v){
+            if(!v||!v.total) return null;
+            const s=Math.abs(v.spread||0);
+            const favPts=(v.total/2)+(s/2);
+            const dogPts=(v.total/2)-(s/2);
+            const t=String(team||'').toUpperCase();
+            if(t===String(v.fav||'').toUpperCase()) return favPts;
+            if(t===String(v.dog||'').toUpperCase()) return dogPts;
+            return v.total/2;
+          }
+          function dominantScript(card,gameKey){
+            let obj={};
+            try{ obj=JSON.parse(card.dataset.tailScripts||'{}'); }catch(e){ obj={}; }
+            const d=obj[gameKey];
+            if(!d) return null;
+            let bestN=null,bestP=0;
+            Object.entries(d).forEach(([k,v])=>{ const p=Number(v)||0; if(p>bestP){bestP=p;bestN=k;} });
+            return bestN?{name:bestN,p:bestP,dist:d}:null;
+          }
+          function guessScriptFromVegas(v){
+            if(!v) return 'Neutral';
+            const tot=v.total||0; const sp=Math.abs(v.spread||0);
+            if(tot>=50 && sp<=4) return 'Shootout';
+            if(tot<=41 && sp<=4) return 'Low & slow';
+            if(sp>=7) return 'Fav leads';
+            return 'Competitive';
+          }
+          function statHint(pos,ceil){
+            const p=String(pos||'').toUpperCase();
+            if(p==='QB'){
+              if(ceil>=36) return {txt:'~350+ pass yds & 4+ total TD', tdMin:4, tdMax:5};
+              if(ceil>=30) return {txt:'~300+ pass yds bonus & 3+ total TD', tdMin:3, tdMax:4};
+              if(ceil>=24) return {txt:'~275 pass yds & 2-3 total TD', tdMin:2, tdMax:3};
+              return {txt:'2 total TD + some rushing yards', tdMin:2, tdMax:3};
+            }
+            if(p==='RB'){
+              if(ceil>=30) return {txt:'130+ total yds & 2 TD (or 8+ catches)', tdMin:2, tdMax:3};
+              if(ceil>=24) return {txt:'110+ total yds & 1-2 TD', tdMin:1, tdMax:2};
+              if(ceil>=18) return {txt:'90+ total yds & 1 TD (or 6+ catches)', tdMin:1, tdMax:2};
+              return {txt:'solid volume + efficiency (no mistakes)', tdMin:0, tdMax:1};
+            }
+            if(p==='WR'||p==='TE'){
+              if(ceil>=30) return {txt:'9+ rec, 130+ yds & 2 TD', tdMin:2, tdMax:3};
+              if(ceil>=24) return {txt:'7+ rec, 110+ yds & 1-2 TD', tdMin:1, tdMax:2};
+              if(ceil>=18) return {txt:'6 rec, ~90 yds & 1 TD', tdMin:1, tdMax:2};
+              return {txt:'5+ catches or a long TD', tdMin:0, tdMax:1};
+            }
+            if(p==='DST'){
+              if(ceil>=18) return {txt:'multiple TOs + a defensive TD', tdMin:0, tdMax:1};
+              if(ceil>=12) return {txt:'3-5 sacks + 2+ turnovers', tdMin:0, tdMax:0};
+              return {txt:'a clean game with a few sacks', tdMin:0, tdMax:0};
+            }
+            return {txt:'needs an above-average game', tdMin:0, tdMax:1};
+          }
+          function getPlayerFromRow(tr){
+            return {
+              name: tr.dataset.playerName || (tr.cells[2]?.textContent||'').trim(),
+              team: tr.dataset.playerTeam || (tr.cells[3]?.textContent||'').trim(),
+              pos: tr.dataset.playerPos || '',
+              slot: tr.dataset.playerSlot || (tr.cells[0]?.textContent||'').trim(),
+              salary: num(tr.dataset.playerSalary || (tr.cells[1]?.textContent||'').trim()),
+              proj: num(tr.dataset.playerProj),
+              ceil: num(tr.dataset.playerCeil),
+              game: tr.dataset.playerGame || '',
+              opp: tr.dataset.playerOpp || ''
+            };
+          }
+          function showExplain(card, html, key){
+            const expl=card.querySelector('.lineup-explainer');
+            if(!expl) return;
+            if(expl.dataset.openKey===key && expl.style.display==='block'){
+              expl.style.display='none';
+              expl.dataset.openKey='';
+              return;
+            }
+            expl.dataset.openKey=key;
+            expl.innerHTML=html;
+            expl.style.display='block';
+          }
+          function buildPlayerExplainHTML(p, card){
+            const v=getVegasForGame(p.game);
+            const implied=impliedTeamPoints(p.team,v);
+            const dom=dominantScript(card,p.game);
+            const scriptName=dom?dom.name:guessScriptFromVegas(v);
+            const hint=statHint(p.pos,p.ceil);
+            let sanity='';
+            if(implied){
+              const tdBudget=Math.max(1, Math.round(implied/7));
+              const maxReasonable=tdBudget+1;
+              if(hint.tdMin>maxReasonable){
+                sanity=`<div style="margin-top:6px;color:#fbbf24;"><b>Vegas sanity:</b> ${esc(p.team)} implied ~${implied.toFixed(1)} pts. A ${hint.tdMin}+ TD path is thin — more likely needs bonuses/efficiency.</div>`;
+              } else {
+                sanity=`<div style="margin-top:6px;color:#a8b2ff;">Implied team total: ${implied.toFixed(1)} pts.</div>`;
+              }
+            }
+            let tail='';
+            if(dom && dom.p){ tail = ` <span class="muted">(top-tail: ${Math.round(dom.p*100)}%)</span>`; }
+            const header=`<b>${esc(p.name)}</b> <span class="muted">(${esc(p.pos)}, ${esc(p.team)})</span>`;
+            const meta=`<div style="margin-top:4px;">Proj <b>${p.proj.toFixed(1)}</b> → Ceiling <b>${p.ceil.toFixed(1)}</b> DK pts</div>`;
+            const script=`<div style="margin-top:4px;"><b>Game script:</b> ${esc(scriptName)}${tail}</div>`;
+            const need=`<div style="margin-top:6px;"><b>What needs to happen:</b> ${esc(hint.txt)}</div>`;
+            const vegasLine = v ? `<div style="margin-top:4px;" class="muted">Vegas: total ${v.total.toFixed(1)}, spread ${v.spread.toFixed(1)} (fav ${esc(v.fav)}).</div>` : '';
+            return header + meta + script + need + vegasLine + sanity;
+          }
+          function buildExplainAllHTML(card){
+            const rows=Array.from(card.querySelectorAll('table tbody tr'));
+            const players=rows.map(getPlayerFromRow);
+            let stack={};
+            try{ stack=JSON.parse(card.dataset.stack||'{}'); }catch(e){ stack={}; }
+            const games={};
+            players.forEach(p=>{ if(!p.game) return; games[p.game]=games[p.game]||[]; games[p.game].push(p); });
+            let html=`<b>Explain All</b>`;
+            if(stack && stack.qb && stack.team){
+              html += `<div style="margin-top:6px;" class="muted">Stack: ${esc(stack.qb)} (${esc(stack.team)}) + ${stack.passcatchers||0} pass-catchers${stack.bringback? ' + bring-back' : ''}.</div>`;
+            }
+            html += `<div style="margin-top:10px;"><b>Game flow</b><ul>`;
+            Object.keys(games).forEach(gk=>{
+              const v=getVegasForGame(gk);
+              const dom=dominantScript(card,gk);
+              const s=dom? `${dom.name} (top-tail ${Math.round(dom.p*100)}%)` : guessScriptFromVegas(v);
+              const tot=v? `total ${v.total.toFixed(1)}, spread ${v.spread.toFixed(1)}` : 'no vegas row';
+              const names=games[gk].map(p=>`${esc(p.name)} <span class="muted">(${esc(p.pos)})</span>`).join(', ');
+              html += `<li><b>${esc(gk)}</b> — ${esc(s)}<div class="muted">${tot}</div><div style="margin-top:4px;">${names}</div></li>`;
+            });
+            html += `</ul></div>`;
+            html += `<div style="margin-top:10px;"><b>Player ceilings</b><ul>`;
+            players.forEach(p=>{
+              const hint=statHint(p.pos,p.ceil);
+              const v=getVegasForGame(p.game);
+              const implied=impliedTeamPoints(p.team,v);
+              const sanity = implied ? ` <span class="muted">(implied ${implied.toFixed(1)} pts)</span>` : '';
+              html += `<li><b>${esc(p.slot)}</b> — ${esc(p.name)} <span class="muted">(${esc(p.pos)}, ${esc(p.team)})</span>: ${esc(hint.txt)}${sanity}</li>`;
+            });
+            html += `</ul></div>`;
+            html += `<div style="margin-top:8px;color:#a8b2ff;">Tip: If you see a Vegas sanity warning, the lineup may be relying on an unlikely concentration of TDs in a low-implied team environment.</div>`;
+            return html;
+          }
+          function attachExplainHandlers(){
+            container.querySelectorAll('.explain-player-btn').forEach(btn=>{
+              btn.addEventListener('click',()=>{
+                const tr=btn.closest('tr'); if(!tr) return;
+                const card=btn.closest('.lineup-card'); if(!card) return;
+                const p=getPlayerFromRow(tr);
+                const html=buildPlayerExplainHTML(p,card);
+                showExplain(card, html, 'player:'+p.slot);
+              });
+            });
+            container.querySelectorAll('.explain-all-btn').forEach(btn=>{
+              btn.addEventListener('click',()=>{
+                const card=btn.closest('.lineup-card'); if(!card) return;
+                const html=buildExplainAllHTML(card);
+                showExplain(card, html, 'all');
+              });
+            });
+          }
+          attachExplainHandlers();
+        });
+      </script>
+    {% endif %}
+  </div>
+</body>
+</html>
